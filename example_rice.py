@@ -15,7 +15,7 @@ if __name__ == '__main__':
 
     # Plot luminance
     plt.imshow(data.mean(axis=1).reshape((93,56)), cmap='gray', origin='lower')
-    plt.show()
+    plt.savefig('luminance.png')
 
     # Diffusion map clustering based on Euclidean distances
     e_dm = DiffusionMap(data, kernel_params={'eps': 1}, neighbors=100)
@@ -26,7 +26,7 @@ if __name__ == '__main__':
     e_y = kmeans.predict(e_v)
 
     plt.imshow(e_y.reshape((93,56)), origin='lower')
-    plt.show()
+    plt.savefig('euclidean.png')
 
     # Diffusion map clustering based on Mahalanobis distances with overall covariances
     inv_cov = np.linalg.inv(np.cov(data, rowvar=False))
@@ -40,4 +40,4 @@ if __name__ == '__main__':
     m_y = kmeans.predict(m_v)
 
     plt.imshow(m_y.reshape((93,56)), origin='lower')
-    plt.show()
+    plt.savefig('mahalanobis.png')
