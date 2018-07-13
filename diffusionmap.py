@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.sparse.linalg import eigs
 from scipy.spatial.distance import euclidean
-from covertree import CoverTree
+from scipy.spatial import KDTree
 
 
 def gaussian_kernel(x, y, **kernel_params):
@@ -31,7 +31,7 @@ class DiffusionMap:
         P = np.zeros((N, N), float)
         index = range(N)
 
-        tree = CoverTree(data, self.kernel_params.get('distance', euclidean))
+        tree = KDTree(data)
         near_points = tree.query(data, self.neighbors, self.eps)
 
         for i in index:
