@@ -15,7 +15,8 @@ if __name__ == '__main__':
 
     # Plot luminance
     plt.imshow(data.mean(axis=1).reshape((93,56)), cmap='gray', origin='lower')
-    plt.savefig('luminance.png')
+    #plt.savefig('rice_luminance.png')
+    plt.show()
 
     # Diffusion map clustering based on Euclidean distances
     e_dm = DiffusionMap(data, kernel_params={'eps': 1}, neighbors=100)
@@ -26,12 +27,13 @@ if __name__ == '__main__':
     e_y = kmeans.predict(e_v)
 
     plt.imshow(e_y.reshape((93,56)), origin='lower')
-    plt.savefig('euclidean.png')
+    #plt.savefig('rice_euclidean.png')
+    plt.show()
 
     # Diffusion map clustering based on Mahalanobis distances with overall covariances
     inv_cov = np.linalg.inv(np.cov(data, rowvar=False))
     def mdistance(x, y):
-        return mahalanobis(x, y, inv_cov)
+        return mahalanobis(x, y, VI=inv_cov)
     m_dm = DiffusionMap(data, kernel_params={'eps': 1e9, 'distance': mdistance}, neighbors=100)
     m_w, m_v = m_dm.map(3)
 
@@ -40,4 +42,5 @@ if __name__ == '__main__':
     m_y = kmeans.predict(m_v)
 
     plt.imshow(m_y.reshape((93,56)), origin='lower')
-    plt.savefig('mahalanobis.png')
+    #plt.savefig('rice_mahalanobis.png')
+    plt.show()
