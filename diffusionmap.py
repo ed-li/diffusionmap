@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.sparse.linalg import eigs
 from scipy.spatial.distance import euclidean
+from scipy.spatial.distance import mahalanobis
 from scipy.spatial import KDTree
 
 
@@ -45,8 +46,35 @@ class DiffusionMap:
 
         self.P = (P.T / P.sum(axis=1)).T.copy()
 
-    def map(self, dimensions=2, time=1):
-        self._compute_matrix()
+    def _compute_matrix_local_mahalanobis(self):
+        if self.P is not None:
+            return
+
+        data = self.data
+        N = len(data)
+        P = np.zeros((N, N), float)
+        index = range(N)
+
+        tree = KDTree(data)
+        near_points = tree.query(data, self.neighbors, self.eps)
+
+        for i in index:
+            inv_cov = np.linalg.inv(np.cov(data[near_points[1][i]], rowvar=False))
+            x = data[i]
+            for j in near_points[1][i]:
+                P[i, j] = np.exp(-((mahalanobis(x, data[j], inv_cov)) ** 2) / self.eps)
+
+        for i in index:
+            for j in range(i + 1, N):
+                P[i, j] = P[j, i]
+
+        self.P = (P.T / P.sum(axis=1)).T.copy()
+
+    def map(self, dimensions=2, time=1, local_mahalanobis=False):
+        if local_mahalanobis:
+            self._compute_matrix_local_mahalanobis()
+        else:
+            self._compute_matrix()
 
         values, vectors = eigs(self.P, k=dimensions+1)
 
