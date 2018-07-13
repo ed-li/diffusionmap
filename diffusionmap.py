@@ -7,7 +7,7 @@ from covertree import CoverTree
 def gaussian_kernel(x, y, **kernel_params):
     eps = kernel_params.get('eps', 1.0)
     distance = kernel_params.get('distance', euclidean)
-    return np.exp(-((distance(x, y))**2).sum()/eps)
+    return np.exp(-((distance(x, y))**2)/eps)
 
 
 class DiffusionMap:
