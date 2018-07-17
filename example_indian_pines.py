@@ -14,33 +14,45 @@ if __name__ == '__main__':
     data = np.loadtxt('indian_pines_corrected.txt', delimiter=',')[13775:]
 
     # Plot luminance
-    plt.imshow(data.mean(axis=1).reshape((50,145)), cmap='gray', origin='lower')
+    plt.imshow(data.mean(axis=1).reshape((50, 145)), cmap='gray', origin='lower')
     plt.savefig('indian_pines_luminance.png')
     plt.show()
 
-    # Diffusion map clustering based on Euclidean distances
-    e_dm = DiffusionMap(data, kernel_params={'eps': 1e7}, neighbors=250)
-    e_w, e_v = e_dm.map(10,30)
+    # # Diffusion map clustering based on Euclidean distances
+    # e_dm = DiffusionMap(data, kernel_params={'eps': 1e7}, neighbors=250)
+    # e_w, e_v = e_dm.map(10, 30)
+    #
+    # kmeans = KMeans(n_clusters=8)
+    # kmeans.fit(e_v)
+    # e_y = kmeans.predict(e_v)
+    #
+    # plt.imshow(e_y.reshape((50, 145)), origin='lower')
+    # plt.savefig('indian_pines_euclidean.png')
+    # plt.show()
+    #
+    # # Diffusion map clustering based on Mahalanobis distances with overall covariances
+    # inv_cov = np.linalg.inv(np.cov(data, rowvar=False))
+    # def mdistance(x, y):
+    #     return mahalanobis(x, y, VI=inv_cov)
+    # m_dm = DiffusionMap(data, kernel_params={'eps': 1e7, 'distance': mdistance}, neighbors=250)
+    # m_w, m_v = m_dm.map(10, 30)
+    #
+    # kmeans = KMeans(n_clusters=8)
+    # kmeans.fit(m_v)
+    # m_y = kmeans.predict(m_v)
+    #
+    # plt.imshow(m_y.reshape((50, 145)), origin='lower')
+    # plt.savefig('indian_pines_mahalanobis.png')
+    # plt.show()
+
+    # Diffusion map clustering based on Mahalanobis distances with local covariances
+    lm_dm = DiffusionMap(data, kernel_params={'eps': 1e7}, neighbors=250)
+    lm_w, lm_v = lm_dm.map(10, 30, local_mahalanobis=True)
 
     kmeans = KMeans(n_clusters=8)
-    kmeans.fit(e_v)
-    e_y = kmeans.predict(e_v)
+    kmeans.fit(lm_v)
+    lm_y = kmeans.predict(lm_v)
 
-    plt.imshow(e_y.reshape((50,145)), origin='lower')
-    plt.savefig('indian_pines_euclidean.png')
-    plt.show()
-
-    # Diffusion map clustering based on Mahalanobis distances with overall covariances
-    inv_cov = np.linalg.inv(np.cov(data, rowvar=False))
-    def mdistance(x, y):
-        return mahalanobis(x, y, VI=inv_cov)
-    m_dm = DiffusionMap(data, kernel_params={'eps': 1e7, 'distance': mdistance}, neighbors=250)
-    m_w, m_v = m_dm.map(10,30)
-
-    kmeans = KMeans(n_clusters=8)
-    kmeans.fit(m_v)
-    m_y = kmeans.predict(m_v)
-
-    plt.imshow(m_y.reshape((50,145)), origin='lower')
-    plt.savefig('indian_pines_mahalanobis.png')
+    plt.imshow(lm_y.reshape((50, 145)), origin='lower')
+    plt.savefig('indian_pines_local_mahalanobis.png')
     plt.show()
