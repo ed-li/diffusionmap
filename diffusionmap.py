@@ -57,12 +57,14 @@ class DiffusionMap:
 
         tree = KDTree(data)
         near_points = tree.query(data, self.neighbors, self.eps)
+        nearer_points = tree.query(data, 100, self.eps)
+        inv_cov = [np.linalg.inv(np.cov(data[nearer_points[1][i]], rowvar=False)) for i in index]
 
         for i in index:
-            inv_cov = np.linalg.inv(np.cov(data[near_points[1][i]], rowvar=False))
             x = data[i]
+            x_inv_cov = inv_cov[i]
             for j in near_points[1][i]:
-                P[i, j] = np.exp(-((mahalanobis(x, data[j], inv_cov)) ** 2) / self.eps)
+                P[i, j] = np.exp(-((mahalanobis(x, data[j], x_inv_cov + inv_cov[j])) ** 2) / self.kernel_params.get('eps', 1.0))
 
         for i in index:
             for j in range(i + 1, N):
