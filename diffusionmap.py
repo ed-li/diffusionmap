@@ -3,6 +3,7 @@ from scipy.sparse.linalg import eigs
 from scipy.spatial.distance import euclidean
 from scipy.spatial.distance import mahalanobis
 from scipy.spatial import KDTree
+from sklearn.mixture import GMM
 
 
 def gaussian_kernel(x, y, **kernel_params):
@@ -46,7 +47,7 @@ class DiffusionMap:
 
         self.P = (P.T / P.sum(axis=1)).T.copy()
 
-    def _compute_matrix_local_mahalanobis(self):
+    def _compute_matrix_local_mahalanobis_old(self):
         if self.P is not None:
             return
 
@@ -72,9 +73,38 @@ class DiffusionMap:
 
         self.P = (P.T / P.sum(axis=1)).T.copy()
 
-    def map(self, dimensions=2, time=1, local_mahalanobis=False):
+    def _compute_matrix_local_mahalanobis(self, clusters):
+        if self.P is not None:
+            return
+
+        data = self.data
+        N = len(data)
+        P = np.zeros((N, N), float)
+        index = range(N)
+
+        tree = KDTree(data)
+        near_points = tree.query(data, self.neighbors, self.eps)
+
+        gmm = GMM(n_components=clusters)
+        gmm.fit(data)
+        labels = gmm.predict(data)
+        inv_cov = gmm._get_covars()
+
+        for i in index:
+            x = data[i]
+            x_inv_cov = inv_cov[labels[i]]
+            for j in near_points[1][i]:
+                P[i, j] = np.exp(-((mahalanobis(x, data[j], x_inv_cov + inv_cov[labels[j]])) ** 2) / self.kernel_params.get('eps', 1.0))
+
+        for i in index:
+            for j in range(i + 1, N):
+                P[i, j] = P[j, i]
+
+        self.P = (P.T / P.sum(axis=1)).T.copy()
+
+    def map(self, dimensions=2, time=1, local_mahalanobis=False, clusters=10):
         if local_mahalanobis:
-            self._compute_matrix_local_mahalanobis()
+            self._compute_matrix_local_mahalanobis(clusters)
         else:
             self._compute_matrix()
 
