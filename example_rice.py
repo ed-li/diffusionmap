@@ -4,6 +4,7 @@ from scipy.spatial.distance import mahalanobis
 from diffusionmap import DiffusionMap
 
 from sklearn.cluster import KMeans
+from sklearn.decomposition import PCA
 
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
@@ -45,14 +46,30 @@ if __name__ == '__main__':
     # plt.savefig('rice_mahalanobis.png')
     # plt.show()
 
-    # Diffusion map clustering based on Mahalanobis distances with local covariances
-    lm_dm = DiffusionMap(data, kernel_params={'eps': 1}, neighbors=500)
-    lm_w, lm_v = lm_dm.map(3, local_mahalanobis=True, clusters=25)
+    # # Diffusion map clustering based on Mahalanobis distances with local covariances
+    # lm_dm = DiffusionMap(data, kernel_params={'eps': 1}, neighbors=500)
+    # lm_w, lm_v = lm_dm.map(3, local_mahalanobis=True, clusters=25)
+    #
+    # kmeans = KMeans(n_clusters=3, n_init=100)
+    # kmeans.fit(lm_v)
+    # lm_y = kmeans.predict(lm_v)
+    #
+    # plt.imshow(lm_y.reshape((93, 56)), origin='lower')
+    # plt.savefig('rice_local_gmm_mahalanobis.png')
+    # plt.show()
+
+    # Diffusion map clustering based on Mahalanobis distances with local covariances with PCA preprocessing
+    pca = PCA(n_components=100)
+    pca.fit(data)
+    data_pca = pca.transform(data)
+
+    plm_dm = DiffusionMap(data, kernel_params={'eps': 1}, neighbors=500)
+    plm_w, plm_v = plm_dm.map(3, local_mahalanobis=True, clusters=25)
 
     kmeans = KMeans(n_clusters=3, n_init=100)
-    kmeans.fit(lm_v)
-    lm_y = kmeans.predict(lm_v)
+    kmeans.fit(plm_v)
+    plm_y = kmeans.predict(plm_v)
 
-    plt.imshow(lm_y.reshape((93, 56)), origin='lower')
-    plt.savefig('rice_local_gmm_mahalanobis.png')
+    plt.imshow(plm_y.reshape((93, 56)), origin='lower')
+    plt.savefig('rice_pca_local_gmm_mahalanobis.png')
     plt.show()
