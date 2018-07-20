@@ -59,11 +59,11 @@ if __name__ == '__main__':
     # plt.show()
 
     # Diffusion map clustering based on Mahalanobis distances with local covariances with PCA preprocessing
-    pca = PCA(n_components=100)
+    pca = PCA(n_components=50)
     pca.fit(data)
     data_pca = pca.transform(data)
 
-    plm_dm = DiffusionMap(data, kernel_params={'eps': 1}, neighbors=500)
+    plm_dm = DiffusionMap(data_pca, kernel_params={'eps': 1}, neighbors=500)
     plm_w, plm_v = plm_dm.map(3, local_mahalanobis=True, clusters=25)
 
     kmeans = KMeans(n_clusters=3, n_init=100)
@@ -72,4 +72,19 @@ if __name__ == '__main__':
 
     plt.imshow(plm_y.reshape((93, 56)), origin='lower')
     plt.savefig('rice_pca_local_gmm_mahalanobis.png')
+    plt.show()
+
+    # Diffusion map clustering based on Mahalanobis distances with local covariances with Laplacian eigenmaps preprocessing
+    le = PCA(n_components=50)
+    data_le = pca.fit_transform(data)
+
+    llm_dm = DiffusionMap(data_le, kernel_params={'eps': 1}, neighbors=500)
+    llm_w, llm_v = llm_dm.map(3, local_mahalanobis=True, clusters=25)
+
+    kmeans = KMeans(n_clusters=3, n_init=100)
+    kmeans.fit(llm_v)
+    llm_y = kmeans.predict(llm_v)
+
+    plt.imshow(plm_y.reshape((93, 56)), origin='lower')
+    plt.savefig('rice_laplacian_eigenmaps_local_gmm_mahalanobis.png')
     plt.show()
