@@ -5,6 +5,8 @@ from scipy.spatial.distance import mahalanobis
 from scipy.spatial import KDTree
 from sklearn.mixture import GaussianMixture
 
+import matplotlib.pyplot as plt
+
 
 def gaussian_kernel(x, y, **kernel_params):
     eps = kernel_params.get('eps', 1.0)
@@ -46,6 +48,11 @@ class DiffusionMap:
                 P[i, j] = P[j, i]
 
         self.P = (P.T / P.sum(axis=1)).T.copy()
+        print(self.P)
+        plt.imshow(self.P)
+        plt.show()
+        print(self.P.shape)
+        print("completed diffusion")
 
     # def _compute_matrix_local_mahalanobis_old(self):
     #     if self.P is not None:
@@ -87,8 +94,18 @@ class DiffusionMap:
 
         gmm = GaussianMixture(n_components=clusters)
         gmm.fit(data)
+        print("fitted GMM")
         labels = gmm.predict(data)
-        inv_cov = [np.linalg.inv(cov) for cov in gmm.covariances_]
+        print("predicted labels")
+        print(gmm.covariances_)
+        print(np.shape(gmm.covariances_))
+
+        # inv_cov = [np.linalg.inv(cov) for cov in gmm.covariances_]
+
+        inv_cov = [None] * clusters
+        for i in range(len(gmm.covariances_)):
+            inv_cov[i] = np.linalg.inv(gmm.covariances_[i])
+            print(i)
 
         for i in index:
             x = data[i]
@@ -101,6 +118,11 @@ class DiffusionMap:
                 P[i, j] = P[j, i]
 
         self.P = (P.T / P.sum(axis=1)).T.copy()
+        print(self.P)
+        plt.imshow(self.P)
+        plt.show()
+        print(self.P.shape)
+        print("completed diffusion")
 
     def map(self, dimensions=2, time=1, local_mahalanobis=False, clusters=10):
         if local_mahalanobis:
@@ -108,9 +130,13 @@ class DiffusionMap:
         else:
             self._compute_matrix()
 
+        print("passed through diffusion")
         values, vectors = eigs(self.P, k=dimensions+1)
+        print("calculated eigs")
 
         values = values[1:dimensions+1].real
+        print("assigned values")
         vectors = (values.real**time)*np.array(vectors[:, 1:dimensions+1].real.astype(float))
+        print("assigned vectors")
 
         return values, vectors

@@ -13,25 +13,25 @@ import matplotlib.cm as cm
 
 if __name__ == '__main__':
     # Load data
-    data = np.loadtxt('rice.txt')
+    data = np.loadtxt('salinas-A_corrected.txt', delimiter=',')
 
     # Plot luminance
-    plt.imshow(data.mean(axis=1).reshape((93, 56)), cmap='gray', origin='lower')
+    plt.imshow(data.mean(axis=1).reshape((86, 83)), cmap='gray', origin='lower')
     plt.axis('off')
-    plt.savefig('rice_luminance.png', bbox_inches='tight')
+    plt.savefig('salinas_luminance.png', bbox_inches='tight')
     plt.show()
 
     # Diffusion map clustering based on Euclidean distances
-    e_dm = DiffusionMap(data, kernel_params={'eps': 1e3}, neighbors=500)
-    e_w, e_v = e_dm.map(3, 5)
+    e_dm = DiffusionMap(data, kernel_params={'eps': 1e6}, neighbors=500)
+    e_w, e_v = e_dm.map(10, 30)
 
-    kmeans = KMeans(n_clusters=3, n_init=100)
+    kmeans = KMeans(n_clusters=6, n_init=100)
     kmeans.fit(e_v)
     e_y = kmeans.predict(e_v)
 
-    plt.imshow(e_y.reshape((93, 56)), origin='lower')
+    plt.imshow(e_y.reshape((86, 83)), origin='lower')
     plt.axis('off')
-    plt.savefig('rice_euclidean.png', bbox_inches='tight')
+    plt.savefig('salinas_euclidean.png', bbox_inches='tight')
     plt.show()
 
     # Diffusion map clustering based on Mahalanobis distances with overall covariances
@@ -39,30 +39,30 @@ if __name__ == '__main__':
     def mdistance(x, y):
         return mahalanobis(x, y, VI=inv_cov)
     m_dm = DiffusionMap(data, kernel_params={'eps': 1e6, 'distance': mdistance}, neighbors=500)
-    m_w, m_v = m_dm.map(3, 5)
+    m_w, m_v = m_dm.map(10, 30)
 
-    kmeans = KMeans(n_clusters=3, n_init=100)
+    kmeans = KMeans(n_clusters=6, n_init=100)
     kmeans.fit(m_v)
     m_y = kmeans.predict(m_v)
 
-    plt.imshow(m_y.reshape((93, 56)), origin='lower')
+    plt.imshow(m_y.reshape((86, 83)), origin='lower')
     plt.axis('off')
-    plt.savefig('rice_mahalanobis.png', bbox_inches='tight')
+    plt.savefig('salinas_mahalanobis.png', bbox_inches='tight')
     plt.show()
 
     # Diffusion map clustering based on Mahalanobis distances with local covariances
-    lm_dm = DiffusionMap(data, kernel_params={'eps': 1e6}, neighbors=500)
-    lm_w, lm_v = lm_dm.map(3, 5, local_mahalanobis=True, clusters=10)
+    lm_dm = DiffusionMap(data, kernel_params={'eps': 1e9}, neighbors=500)
+    lm_w, lm_v = lm_dm.map(10, 30, local_mahalanobis=True, clusters=10)
 
-    kmeans = KMeans(n_clusters=3, n_init=100)
+    kmeans = KMeans(n_clusters=6, n_init=100)
     kmeans.fit(lm_v)
     lm_y = kmeans.predict(lm_v)
     print("completed kmeans")
 
-    plt.imshow(lm_y.reshape((93, 56)), origin='lower')
+    plt.imshow(lm_y.reshape((86, 83)), origin='lower')
     print("generated image")
     plt.axis('off')
-    plt.savefig('rice_local_gmm_mahalanobis.png', bbox_inches='tight')
+    plt.savefig('salinas_local_gmm_mahalanobis.png', bbox_inches='tight')
     plt.show()
 
     # # Diffusion map clustering based on Mahalanobis distances with local covariances with PCA preprocessing
